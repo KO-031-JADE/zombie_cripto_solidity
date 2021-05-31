@@ -1,6 +1,10 @@
 pragma solidity 0.5.16; //1. 여기에 솔리디티 버전 적기
 
 contract ZombieFactory{
+  event NewZombie (uint zobieId, string name, uint dna);
+  // 이벤트는 자네의 컨트랙트가 블록체인 상에서 자네 앱의 사용자 단에서 무언가 액션이 발생했을 때
+  // 의사소통하는 방법이지. 컨트랙트는 특정 이벤트가 일어나는지 "귀를 기울이고" 그 이벤트가 발생하면 행동을 취하지.
+
   uint dnaDigits = 16; //상태변수는 블록체인 안에 영구적으로 저장이된다
   uint dnaModulus = 10 ** dnaDigits; //// 즉, 10^16  10의 16승
   // uint = unsigned integer 음수가 아닌 부호없는 정수
@@ -30,9 +34,26 @@ contract ZombieFactory{
   function _createZombie(string _name, uint _dna) private{
     //private 선언된 함수는 관례로 _를 추가 해야한다
     zombies.push(Zombie(_name, _dna));
+
+    uint id = zombies.push(Zombie(_name, _dna)) - 1;
+    NewZombie(id, _name, _dna);
   }
   //함수란 어떠한 인자값을 받고, 그 값들을 연산하여 결과값을 도출해 내는 것
+  function _generateRandomDna(string _str) private view returns(uint){
+  //view함수로 선언하는 것은 상태를 변화시키지 않거나 어떤값을 변경하거나 무언가를 쓰지 않을떄 선언한다
 
+    uint rand = uint(keccak256(_str)); // _str을 해시값을 받아 난수 16진수를 생성하고 uint로 형변환 한다음 rand라는 uint에 결과값을 저장
+    return rand % dnaModulus;//16자리 숫자만을 원하므로 dnaModulus 코드의 결과값을 모듈로 연산한 값을 반환한다
+  }
+
+  function createRandomZombie(string _name) public{
+    uint randDna = _generateRandomDna(_name);
+    _createZombie(_name, randDna);
+    // createRandomZombie라는 public함수를 생성한다. 이 함수는 _name이라는 string형 인자를 하나 전달받는다. (참고: 함수를 private로 선언한 것과 마찬가지로 함수를 public로 생성할 것)
+    // 이 함수의 첫 줄에서는 _name을 전달받은 _generateRandomDna 함수를 호출하고, 이 함수의 반환값을 randDna라는 uint형 변수에 저장해야 한다.
+    // 두번째 줄에서는 _createZombie 함수를 호출하고 이 함수에 _name와 randDna를 전달해야 한다.
+    // 함수의 내용을 닫는 }를 포함해서 코드가 4줄이어야 한다.
+  }
 }
 
 //솔리디티 코드는 컨트랙트 안에 싸여 있지. 컨트랙트는 이더리움 애플리케이션의 기본적인 구성 요소로, 
